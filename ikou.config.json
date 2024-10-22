@@ -1,0 +1,10 @@
+{
+  "basePath": "./frontend",
+  "outputPath": "./dist",
+  "tailwind": {
+    "config": "tailwind.config.js",
+    "cssPath": "src/styles/base.css",
+    "output": "public/style.css",
+    "executable": ".ikou/lib/tailwindcss"
+  }
+}
