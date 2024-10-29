@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"html/template"
-	"log"
 
+	"github.com/bendigiorgio/ikou/internal/app/utils"
 	esbuild "github.com/evanw/esbuild/pkg/api"
 	"go.uber.org/zap"
 	v8 "rogchap.com/v8go"
@@ -29,7 +29,7 @@ const htmlTemplate = `
 	<script type="module">
 	  {{ .JS }}
 	</script>
-	<script>window.APP_PROPS = {{.InitialProps}};</script>
+	<script id="IKOU_PROPS">window.APP_PROPS = {{.InitialProps}};</script>
 </body>
 </html>
 `
@@ -48,7 +48,7 @@ const clientHtmlTemplate = `
 	  {{ .JS }}
 	renderClientSide();
 	</script>
-	<script>window.APP_PROPS = {{.InitialProps}};</script>
+	<script id="IKOU_PROPS">window.APP_PROPS = {{.InitialProps}};</script>
 </body>
 </html>
 `
@@ -74,19 +74,20 @@ type PageProps struct {
 //   - A string containing the contents of the bundled JavaScript file.
 //   - An error if the build process fails or if no output files are generated.
 func buildBackend(pagePath string) (string, error) {
+	defer utils.Logger.Sync()
 	result := esbuild.Build(esbuild.BuildOptions{
-		EntryPoints: []string{pagePath},
-		Bundle:      true,
-		Write:       false,
-		Outdir:      "out/",
-		Format:      esbuild.FormatIIFE, // IIFE format for use in v8
-		Platform:    esbuild.PlatformBrowser,
-		Target:      esbuild.ESNext,
-		// MinifyWhitespace:  true,
-		// MinifyIdentifiers: true,
-		// MinifySyntax:      true,
-		// Metafile:          false,
-		LogLevel: esbuild.LogLevelError,
+		EntryPoints:       []string{pagePath},
+		Bundle:            true,
+		Write:             false,
+		Outdir:            "out/",
+		Format:            esbuild.FormatIIFE, // IIFE format for use in v8
+		Platform:          esbuild.PlatformBrowser,
+		Target:            esbuild.ESNext,
+		MinifyWhitespace:  true,
+		MinifyIdentifiers: true,
+		MinifySyntax:      true,
+		Metafile:          false,
+		LogLevel:          esbuild.LogLevelError,
 
 		Banner: map[string]string{
 			"js": textEncoderPolyfill + processPolyfill + consolePolyfill,
@@ -98,6 +99,7 @@ func buildBackend(pagePath string) (string, error) {
 	})
 
 	if len(result.OutputFiles) == 0 {
+		utils.Logger.Sugar().Fatal("Server build error:", result.Errors)
 		return "", fmt.Errorf("no output files from backend build")
 	}
 
@@ -115,6 +117,7 @@ func buildBackend(pagePath string) (string, error) {
 //   - A string containing the bundled client-side JavaScript.
 //   - An error if the build process fails or produces no output files.
 func buildClient(clientEntry string) (string, error) {
+	defer utils.Logger.Sync()
 	clientResult := esbuild.Build(esbuild.BuildOptions{
 		EntryPoints: []string{clientEntry},
 		Bundle:      true,
@@ -123,10 +126,10 @@ func buildClient(clientEntry string) (string, error) {
 	})
 
 	if len(clientResult.OutputFiles) == 0 {
+		utils.Logger.Sugar().Fatal("Client build error:", clientResult.Errors)
 		return "", fmt.Errorf("no output files from client build")
 	}
 
-	// Return the bundled client-side JavaScript as a string
 	return string(clientResult.OutputFiles[0].Contents), nil
 }
 
@@ -142,8 +145,7 @@ func buildClient(clientEntry string) (string, error) {
 // - PageData: A struct containing the rendered HTML content, initial props, JavaScript bundle, and the HTML template.
 // - error: An error if any occurred during the rendering process.
 func RenderPage(isSSG bool, clientEntry string, props PageProps, pagePath string) (PageData, error) {
-	logger, _ := zap.NewProduction()
-	defer logger.Sync()
+	defer utils.Logger.Sync()
 
 	var renderedHTML string
 	var err error
@@ -160,7 +162,7 @@ func RenderPage(isSSG bool, clientEntry string, props PageProps, pagePath string
 
 	backendBundle, err := buildBackend(pagePath)
 	if err != nil {
-		logger.Error("Error building backend bundle", zap.Error(err))
+		utils.Logger.Error("Error building backend bundle", zap.Error(err))
 		return PageData{}, err
 	}
 
@@ -168,40 +170,40 @@ func RenderPage(isSSG bool, clientEntry string, props PageProps, pagePath string
 
 	_, err = ctx.RunScript(backendBundle, "bundle.js")
 	if err != nil {
-		logger.Error("Error running backend bundle", zap.Error(err))
+		utils.Logger.Error("Error running backend bundle", zap.Error(err))
 		return PageData{}, err
 	}
 
 	val, err := ctx.RunScript("renderApp()", "render.js")
 	if err != nil {
-		log.Fatalf("Failed to render React component: %v", err)
+		utils.Logger.Sugar().Fatalf("Failed to render React component: %v", err)
 	}
 	renderedHTML = val.String()
 
 	if !isSSG {
 		clientBundle, err = buildClient(clientEntry)
 		if err != nil {
-			logger.Error("Error building client bundle", zap.Error(err))
+			utils.Logger.Error("Error building client bundle", zap.Error(err))
 			return PageData{}, err
 		}
 	}
 
 	jsonProps, err := json.Marshal(propsWithPage)
 	if err != nil {
-		log.Fatalf("Failed to marshal props: %v", err)
+		utils.Logger.Sugar().Fatalf("Failed to marshal props: %v", err)
 		return PageData{}, err
 	}
 
 	tmpl, err := template.New("webpage").Parse(htmlTemplate)
 	if err != nil {
-		log.Fatal("Error parsing template:", err)
+		utils.Logger.Sugar().Fatal("Error parsing template:", err)
 		return PageData{}, err
 	}
 
 	if !isSSG {
 		tmpl, err = template.New("webpage").Parse(clientHtmlTemplate)
 		if err != nil {
-			log.Fatal("Error parsing client template:", err)
+			utils.Logger.Sugar().Fatal("Error parsing client template:", err)
 			return PageData{}, err
 		}
 	}

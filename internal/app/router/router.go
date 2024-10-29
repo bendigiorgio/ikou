@@ -2,12 +2,12 @@ package router
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/bendigiorgio/ikou/internal/app/react"
+	"github.com/bendigiorgio/ikou/internal/app/utils"
 	"github.com/fsnotify/fsnotify"
 )
 
@@ -21,6 +21,7 @@ type RouteInfo struct {
 var RouteMap = map[string]RouteInfo{}
 
 func scanDirectory(directory string, baseRoute string) error {
+	defer utils.Logger.Sync()
 	return filepath.Walk(directory, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -40,7 +41,7 @@ func scanDirectory(directory string, baseRoute string) error {
 				IsSSG:    isSSG,
 			}
 
-			log.Printf("Mapped route: %s -> %s (SSR: %v)\n", route, path, isSSG)
+			utils.Logger.Sugar().Debugf("Mapped route: %s -> %s (SSR: %v)\n", route, path, isSSG)
 		}
 		return nil
 	})
@@ -60,9 +61,10 @@ func generateRouteFromFilePath(filePath string, baseRoute string) string {
 }
 
 func watchDirectory(directory string, baseRoute string) {
+	defer utils.Logger.Sync()
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
-		log.Fatal(err)
+		utils.Logger.Sugar().Fatal(err)
 	}
 	defer watcher.Close()
 
@@ -76,14 +78,14 @@ func watchDirectory(directory string, baseRoute string) {
 					return
 				}
 				if event.Op&fsnotify.Write == fsnotify.Write || event.Op&fsnotify.Create == fsnotify.Create {
-					log.Printf("File changed: %s", event.Name)
+					utils.Logger.Sugar().Infof("File changed: ", event.Name)
 					err := scanDirectory(directory, baseRoute)
 					if err != nil {
-						log.Println("Error rescanning directory:", err)
+						utils.Logger.Sugar().Errorf("Error rescanning directory:", err)
 					}
-					err = react.BuildCSS("../../../frontend/src/styles/base.css", "../../../frontend/public/style.css")
+					err = react.BuildCSS()
 					if err != nil {
-						log.Fatalf("Error building CSS: %v", err)
+						utils.Logger.Sugar().Fatalf("Error building CSS: %v", err)
 
 					}
 				}
@@ -91,25 +93,28 @@ func watchDirectory(directory string, baseRoute string) {
 				if !ok {
 					return
 				}
-				log.Println("Watcher error:", err)
+				utils.Logger.Sugar().Errorf("Watcher error:", err)
 			}
 		}
 	}()
 
 	err = watcher.Add(directory)
 	if err != nil {
-		log.Fatal(err)
+		utils.Logger.Sugar().Fatal(err)
 	}
 	<-done
 }
 
-func InitializeRouting(baseRoute string) {
+func InitializeRouting(baseRoute string, dev bool) {
+	defer utils.Logger.Sync()
+
 	err := scanDirectory(fmt.Sprintf("%s/pages/", baseRoute), baseRoute)
 	if err != nil {
-		log.Fatalf("Error scanning pages directory: %v", err)
+		utils.Logger.Sugar().Fatalf("Error scanning pages directory: %v", err)
+	}
+	if dev {
+		go watchDirectory(fmt.Sprintf("%s/pages/", baseRoute), baseRoute)
 	}
 
-	go watchDirectory(fmt.Sprintf("%s/pages/", baseRoute), baseRoute)
-
-	log.Println("Initial routes:", RouteMap)
+	utils.Logger.Sugar().Debugf("Initial routes:", RouteMap)
 }

@@ -3,18 +3,57 @@ package react
 import (
 	"fmt"
 	"os/exec"
+	"path"
+
+	"github.com/bendigiorgio/ikou/internal/app/utils"
 )
 
-func BuildCSS(cssPath string, outPath string) error {
-	cmdTest := exec.Command("pwd")
-	out, err := cmdTest.Output()
+func BuildCSS() error {
+	defer utils.Logger.Sync()
+
+	cssPath := utils.GlobalConfig.Tailwind.CSSPath
+	outPath := utils.GlobalConfig.Tailwind.Output
+	configPath := utils.GlobalConfig.Tailwind.Config
+	basePath := utils.GlobalConfig.BasePath
+
+	cssPath = path.Join(basePath, cssPath)
+	outPath = path.Join(basePath, outPath)
+	configPath = path.Join(basePath, configPath)
+
+	tailwindExecutable := "./internal/app/lib/tailwindcss"
+
+	cmd := exec.Command(tailwindExecutable, "-i", cssPath, "-o", outPath, "-c", configPath)
+
+	output, err := cmd.CombinedOutput()
+
+	utils.Logger.Sugar().Debugf("Tailwind CSS Build Output:\n%s", output)
+
 	if err != nil {
-		return fmt.Errorf("error getting current working directory: %w", err)
+		return fmt.Errorf("error building css: %w", err)
 	}
-	fmt.Println(string(out))
-	cmd := exec.Command("./tailwindcss", "-i", cssPath, "-o", outPath, "-c", "../../../frontend/tailwind.config.js")
-	cmd.Dir = "./internal/app/lib"
-	err = cmd.Run()
+	return nil
+}
+
+func WatchCSS() error {
+	defer utils.Logger.Sync()
+
+	cssPath := utils.GlobalConfig.Tailwind.CSSPath
+	outPath := utils.GlobalConfig.Tailwind.Output
+	configPath := utils.GlobalConfig.Tailwind.Config
+	basePath := utils.GlobalConfig.BasePath
+
+	cssPath = path.Join(basePath, cssPath)
+	outPath = path.Join(basePath, outPath)
+	configPath = path.Join(basePath, configPath)
+
+	tailwindExecutable := "./internal/app/lib/tailwindcss"
+
+	cmd := exec.Command(tailwindExecutable, "-i", cssPath, "-o", outPath, "-c", configPath, "--watch")
+
+	output, err := cmd.CombinedOutput()
+
+	utils.Logger.Sugar().Debugf("Tailwind CSS Build Output:\n%s", output)
+
 	if err != nil {
 		return fmt.Errorf("error building css: %w", err)
 	}

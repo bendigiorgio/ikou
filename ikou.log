@@ -1,0 +1,103 @@
+{"level":"info","ts":1730209044.870395,"caller":"app/server.go:21","msg":"Starting server on port: http://localhost:8080"}
+2024-10-29T22:38:16.074+0900	DEBUG	utils/config.go:62	Config loaded: %+v
+{./frontend ./dist frontend/public true 8080 {tailwind.config.js src/styles/base.css public/style.css}}
+2024-10-29T22:38:16.468+0900	DEBUG	react/tailwind.go:29	Tailwind CSS Build Output:
+
+Rebuilding...
+
+Done in 104ms.
+
+2024-10-29T22:38:16.472+0900	INFO	app/server.go:21	Starting server on port: http://localhost:8080
+2024-10-29T22:38:16.473+0900	DEBUG	router/router.go:44	Mapped route: /alt -> frontend/src/pages/alt.client.page.tsx (SSR: false)
+
+2024-10-29T22:38:16.473+0900	DEBUG	router/router.go:44	Mapped route: /hello -> frontend/src/pages/hello.page.tsx (SSR: true)
+
+2024-10-29T22:38:16.473+0900	DEBUG	router/router.go:44	Mapped route: / -> frontend/src/pages/index.page.tsx (SSR: true)
+
+2024-10-29T22:38:16.473+0900	DEBUG	router/router.go:44	Mapped route: /test -> frontend/src/pages/test.page.tsx (SSR: true)
+
+2024-10-29T22:38:16.477+0900	DEBUG	router/router.go:119	Initial routes:%!(EXTRA map[string]router.RouteInfo=map[/:{frontend/src/pages/index.page.tsx true false []} /alt:{frontend/src/pages/alt.client.page.tsx false false []} /hello:{frontend/src/pages/hello.page.tsx true false []} /test:{frontend/src/pages/test.page.tsx true false []}])
+2024-10-29T22:40:31.591+0900	DEBUG	utils/config.go:62	Config loaded: %+v
+{./frontend ./dist frontend/public true 8080 {tailwind.config.js src/styles/base.css public/style.css}}
+2024-10-29T22:40:31.942+0900	DEBUG	react/tailwind.go:29	Tailwind CSS Build Output:
+
+Rebuilding...
+
+Done in 86ms.
+
+2024-10-29T22:40:31.948+0900	INFO	app/server.go:21	Starting server on port: http://localhost:8080
+2024-10-29T22:40:31.948+0900	DEBUG	router/router.go:44	Mapped route: /alt -> frontend/src/pages/alt.client.page.tsx (SSR: false)
+
+2024-10-29T22:40:31.948+0900	DEBUG	router/router.go:44	Mapped route: /hello -> frontend/src/pages/hello.page.tsx (SSR: true)
+
+2024-10-29T22:40:31.948+0900	DEBUG	router/router.go:44	Mapped route: / -> frontend/src/pages/index.page.tsx (SSR: true)
+
+2024-10-29T22:40:31.948+0900	DEBUG	router/router.go:44	Mapped route: /test -> frontend/src/pages/test.page.tsx (SSR: true)
+
+2024-10-29T22:40:31.953+0900	DEBUG	router/router.go:119	Initial routes:%!(EXTRA map[string]router.RouteInfo=map[/:{frontend/src/pages/index.page.tsx true false []} /alt:{frontend/src/pages/alt.client.page.tsx false false []} /hello:{frontend/src/pages/hello.page.tsx true false []} /test:{frontend/src/pages/test.page.tsx true false []}])
+2024-10-29T22:41:54.857+0900	DEBUG	utils/config.go:62	Config loaded: %+v
+{./frontend ./dist frontend/public true 8080 {tailwind.config.js src/styles/base.css public/style.css}}
+2024-10-29T22:41:55.207+0900	DEBUG	react/tailwind.go:29	Tailwind CSS Build Output:
+
+Rebuilding...
+
+Done in 88ms.
+
+2024-10-29T22:41:55.213+0900	INFO	app/server.go:21	Starting server on port: http://localhost:8080
+2024-10-29T22:41:55.213+0900	DEBUG	router/router.go:44	Mapped route: /alt -> frontend/src/pages/alt.client.page.tsx (SSR: false)
+
+2024-10-29T22:41:55.213+0900	DEBUG	router/router.go:44	Mapped route: /hello -> frontend/src/pages/hello.page.tsx (SSR: true)
+
+2024-10-29T22:41:55.213+0900	DEBUG	router/router.go:44	Mapped route: / -> frontend/src/pages/index.page.tsx (SSR: true)
+
+2024-10-29T22:41:55.213+0900	DEBUG	router/router.go:44	Mapped route: /test -> frontend/src/pages/test.page.tsx (SSR: true)
+
+2024-10-29T22:41:55.218+0900	DEBUG	router/router.go:119	Initial routes:%!(EXTRA map[string]router.RouteInfo=map[/:{frontend/src/pages/index.page.tsx true false []} /alt:{frontend/src/pages/alt.client.page.tsx false false []} /hello:{frontend/src/pages/hello.page.tsx true false []} /test:{frontend/src/pages/test.page.tsx true false []}])
+2024-10-29T22:41:56.967+0900	ERROR	react/react.go:101	Backend build error:[]
+github.com/bendigiorgio/ikou/internal/app/react.buildBackend
+	/Users/bendigiorgio/Documents/Programming/go-ssr-react/internal/app/react/react.go:101
+github.com/bendigiorgio/ikou/internal/app/react.RenderPage
+	/Users/bendigiorgio/Documents/Programming/go-ssr-react/internal/app/react/react.go:167
+github.com/bendigiorgio/ikou/internal/app.StartServer.func1
+	/Users/bendigiorgio/Documents/Programming/go-ssr-react/internal/app/server.go:63
+net/http.HandlerFunc.ServeHTTP
+	/usr/local/go/src/net/http/server.go:2166
+github.com/gorilla/mux.(*Router).ServeHTTP
+	/Users/bendigiorgio/go/pkg/mod/github.com/gorilla/mux@v1.8.1/mux.go:212
+net/http.serverHandler.ServeHTTP
+	/usr/local/go/src/net/http/server.go:3137
+net/http.(*conn).serve
+	/usr/local/go/src/net/http/server.go:2039
+2024-10-29T22:41:57.136+0900	ERROR	react/react.go:130	Client build error:[]
+github.com/bendigiorgio/ikou/internal/app/react.buildClient
+	/Users/bendigiorgio/Documents/Programming/go-ssr-react/internal/app/react/react.go:130
+github.com/bendigiorgio/ikou/internal/app/react.RenderPage
+	/Users/bendigiorgio/Documents/Programming/go-ssr-react/internal/app/react/react.go:188
+github.com/bendigiorgio/ikou/internal/app.StartServer.func1
+	/Users/bendigiorgio/Documents/Programming/go-ssr-react/internal/app/server.go:63
+net/http.HandlerFunc.ServeHTTP
+	/usr/local/go/src/net/http/server.go:2166
+github.com/gorilla/mux.(*Router).ServeHTTP
+	/Users/bendigiorgio/go/pkg/mod/github.com/gorilla/mux@v1.8.1/mux.go:212
+net/http.serverHandler.ServeHTTP
+	/usr/local/go/src/net/http/server.go:3137
+net/http.(*conn).serve
+	/usr/local/go/src/net/http/server.go:2039
+2024-10-29T22:42:34.383+0900	DEBUG	utils/config.go:62	Config loaded: %+v
+{./frontend ./dist frontend/public true 8080 {tailwind.config.js src/styles/base.css public/style.css}}
+2024-10-29T22:42:34.748+0900	DEBUG	react/tailwind.go:29	Tailwind CSS Build Output:
+
+Rebuilding...
+
+Done in 92ms.
+
+2024-10-29T22:42:34.753+0900	INFO	app/server.go:21	Starting server on port: http://localhost:8080
+2024-10-29T22:42:34.754+0900	DEBUG	router/router.go:44	Mapped route: /alt -> frontend/src/pages/alt.client.page.tsx (SSR: false)
+
+2024-10-29T22:42:34.754+0900	DEBUG	router/router.go:44	Mapped route: /hello -> frontend/src/pages/hello.page.tsx (SSR: true)
+
+2024-10-29T22:42:34.754+0900	DEBUG	router/router.go:44	Mapped route: / -> frontend/src/pages/index.page.tsx (SSR: true)
+
+2024-10-29T22:42:34.754+0900	DEBUG	router/router.go:44	Mapped route: /test -> frontend/src/pages/test.page.tsx (SSR: true)
+
+2024-10-29T22:42:34.758+0900	DEBUG	router/router.go:119	Initial routes:%!(EXTRA map[string]router.RouteInfo=map[/:{frontend/src/pages/index.page.tsx true false []} /alt:{frontend/src/pages/alt.client.page.tsx false false []} /hello:{frontend/src/pages/hello.page.tsx true false []} /test:{frontend/src/pages/test.page.tsx true false []}])
