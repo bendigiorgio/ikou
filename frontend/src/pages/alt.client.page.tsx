@@ -1,7 +1,6 @@
-import { wrapSSRComponent } from "@/serverEntry";
 import React from "react";
 
-const AltPage = wrapSSRComponent(() => {
+const AltPage = () => {
   const [count, setCount] = React.useState(0);
   return (
     <div>
@@ -10,6 +9,6 @@ const AltPage = wrapSSRComponent(() => {
       <div>{count}</div>
     </div>
   );
-});
+};
 
 export default AltPage;

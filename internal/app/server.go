@@ -56,13 +56,9 @@ func StartServer(devMode bool) {
 		initialProps := react.PageProps{
 			PageRoute: route,
 		}
-		clientEntry := path.Join(basePath, "clientEntry.tsx")
-		if useSrc {
-			clientEntry = path.Join(basePath, "src/clientEntry.tsx")
-		}
+
 		pageData, err := react.RenderPage(
 			routeInfo.IsSSG,
-			clientEntry,
 			initialProps,
 			routeInfo.PagePath,
 		)

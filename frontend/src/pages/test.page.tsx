@@ -1,7 +1,5 @@
-import { wrapSSRComponent } from "@/serverEntry";
-
-const TestPage = wrapSSRComponent(() => {
+const TestPage = () => {
   return <main>TestPage</main>;
-});
+};
 
 export default TestPage;

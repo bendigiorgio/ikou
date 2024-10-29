@@ -5,15 +5,12 @@ import "./styles/base.css";
 
 globalThis.React = React;
 
-export const wrapSSRComponent = (PageComponent: any) => {
-  const renderApp = (props: any) => {
-    const renderedHTML = renderToString(
-      <Root>
-        <PageComponent {...props} />
-      </Root>
-    );
-    return renderedHTML;
-  };
-  // @ts-ignore
-  globalThis.renderApp = renderApp;
+// @ts-ignore
+globalThis.renderApp = (PageComponent: React.FC<any>, props: any) => {
+  const renderedHTML = renderToString(
+    <Root>
+      <PageComponent {...props} />
+    </Root>
+  );
+  return renderedHTML;
 };

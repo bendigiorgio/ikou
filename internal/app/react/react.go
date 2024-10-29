@@ -4,6 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"html/template"
+	"os"
+	"path"
+	"path/filepath"
 
 	"github.com/bendigiorgio/ikou/internal/app/utils"
 	esbuild "github.com/evanw/esbuild/pkg/api"
@@ -16,7 +19,7 @@ var textEncoderPolyfill = `function TextEncoder(){} TextEncoder.prototype.encode
 var processPolyfill = `var process = {env: {NODE_ENV: "production"}};`
 var consolePolyfill = `var console = {log: function(){}};`
 
-const htmlTemplate = `
+const ssrHtmlTemplate = `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -26,15 +29,13 @@ const htmlTemplate = `
 </head>
 <body>
     <div id="app">{{.RenderedContent}}</div>
-	<script type="module">
-	  {{ .JS }}
-	</script>
-	<script id="IKOU_PROPS">window.APP_PROPS = {{.InitialProps}};</script>
+    <script id="IKOU_PROPS">window.APP_PROPS = {{.InitialProps}};</script>
+	<script type="module">{{.JS}}</script>
 </body>
 </html>
 `
 
-const clientHtmlTemplate = `
+const ssrClientHtmlTemplate = `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -44,11 +45,10 @@ const clientHtmlTemplate = `
 </head>
 <body>
     <div id="app">{{.RenderedContent}}</div>
-	<script type="module">
-	  {{ .JS }}
-	renderClientSide();
+    <script id="IKOU_PROPS">window.APP_PROPS = {{.InitialProps}};</script>
+	<script type="module">{{.JS}}
+	globalThis.renderClientSide(globalThis.PageComponent, window.APP_PROPS);
 	</script>
-	<script id="IKOU_PROPS">window.APP_PROPS = {{.InitialProps}};</script>
 </body>
 </html>
 `
@@ -73,10 +73,31 @@ type PageProps struct {
 // Returns:
 //   - A string containing the contents of the bundled JavaScript file.
 //   - An error if the build process fails or if no output files are generated.
-func buildBackend(pagePath string) (string, error) {
+func buildBackend(serverEntry string, pagePath string, basePath string) (string, error) {
 	defer utils.Logger.Sync()
+	serverEntryContent, err := os.ReadFile(serverEntry)
+	if err != nil {
+		return "", fmt.Errorf("failed to read server entry: %w", err)
+	}
+
+	// Dynamically add an import statement for the target page component
+	importStatement := fmt.Sprintf("import PageComponent from './%s'; globalThis.PageComponent = PageComponent;", filepath.ToSlash(pagePath))
+	combinedContent := fmt.Sprintf("%s\n%s", serverEntryContent, importStatement)
+
+	tmpFile, err := os.CreateTemp(basePath, "temp_server_entry_*.tsx")
+	if err != nil {
+		return "", fmt.Errorf("failed to create temp file: %w", err)
+	}
+	defer os.Remove(tmpFile.Name())
+
+	if _, err = tmpFile.Write([]byte(combinedContent)); err != nil {
+		return "", fmt.Errorf("failed to write to temp file: %w", err)
+	}
+
+	tmpFile.Close()
+
 	result := esbuild.Build(esbuild.BuildOptions{
-		EntryPoints:       []string{pagePath},
+		EntryPoints:       []string{tmpFile.Name()},
 		Bundle:            true,
 		Write:             false,
 		Outdir:            "out/",
@@ -88,7 +109,7 @@ func buildBackend(pagePath string) (string, error) {
 		MinifySyntax:      true,
 		Metafile:          false,
 		LogLevel:          esbuild.LogLevelError,
-
+		TreeShaking:       esbuild.TreeShakingTrue,
 		Banner: map[string]string{
 			"js": textEncoderPolyfill + processPolyfill + consolePolyfill,
 		},
@@ -99,7 +120,7 @@ func buildBackend(pagePath string) (string, error) {
 	})
 
 	if len(result.OutputFiles) == 0 {
-		utils.Logger.Sugar().Fatal("Server build error:", result.Errors)
+		utils.Logger.Sugar().Fatal("Server build error:", result)
 		return "", fmt.Errorf("no output files from backend build")
 	}
 
@@ -116,13 +137,35 @@ func buildBackend(pagePath string) (string, error) {
 // Returns:
 //   - A string containing the bundled client-side JavaScript.
 //   - An error if the build process fails or produces no output files.
-func buildClient(clientEntry string) (string, error) {
+func buildClient(clientEntry string, pagePath string, basePath string) (string, error) {
+	clientEntryContent, err := os.ReadFile(clientEntry)
+	if err != nil {
+		return "", fmt.Errorf("failed to read client entry: %w", err)
+	}
+
+	// Dynamically add an import statement for the target page component
+	importStatement := fmt.Sprintf("import PageComponent from './%s'; globalThis.PageComponent = PageComponent;", filepath.ToSlash(pagePath))
+	combinedContent := fmt.Sprintf("%s\n%s", clientEntryContent, importStatement)
+
+	tmpFile, err := os.CreateTemp(basePath, "temp_client_entry_*.tsx")
+	if err != nil {
+		return "", fmt.Errorf("failed to create temp file: %w", err)
+	}
+	defer os.Remove(tmpFile.Name())
+
+	if _, err = tmpFile.Write([]byte(combinedContent)); err != nil {
+		return "", fmt.Errorf("failed to write to temp file: %w", err)
+	}
+
+	tmpFile.Close()
 	defer utils.Logger.Sync()
 	clientResult := esbuild.Build(esbuild.BuildOptions{
-		EntryPoints: []string{clientEntry},
+		EntryPoints: []string{tmpFile.Name()},
 		Bundle:      true,
-		Write:       true,
+		Write:       false,
+		TreeShaking: esbuild.TreeShakingTrue,
 		LogLevel:    esbuild.LogLevelError,
+		Target:      esbuild.ESNext,
 	})
 
 	if len(clientResult.OutputFiles) == 0 {
@@ -144,11 +187,22 @@ func buildClient(clientEntry string) (string, error) {
 // Returns:
 // - PageData: A struct containing the rendered HTML content, initial props, JavaScript bundle, and the HTML template.
 // - error: An error if any occurred during the rendering process.
-func RenderPage(isSSG bool, clientEntry string, props PageProps, pagePath string) (PageData, error) {
+func RenderPage(isSSG bool, props PageProps, pagePath string) (PageData, error) {
 	defer utils.Logger.Sync()
 
 	var renderedHTML string
 	var err error
+
+	basePath := utils.GlobalConfig.BasePath
+	useSrc := utils.GlobalConfig.UseSrc
+	if useSrc {
+		basePath = path.Join(basePath, "src")
+	}
+
+	clientEntry := path.Join(basePath, "clientEntry.tsx")
+	serverEntry := path.Join(basePath, "serverEntry.tsx")
+
+	pagePath = pagePath[len(basePath+"/"):]
 
 	propsWithPage := struct {
 		PageProps
@@ -158,9 +212,13 @@ func RenderPage(isSSG bool, clientEntry string, props PageProps, pagePath string
 		PagePath:  pagePath,
 	}
 
-	clientBundle := ""
+	jsonProps, err := json.Marshal(propsWithPage)
+	if err != nil {
+		utils.Logger.Sugar().Fatalf("Failed to marshal props: %v", err)
+		return PageData{}, err
+	}
 
-	backendBundle, err := buildBackend(pagePath)
+	backendBundle, err := buildBackend(serverEntry, pagePath, basePath)
 	if err != nil {
 		utils.Logger.Error("Error building backend bundle", zap.Error(err))
 		return PageData{}, err
@@ -174,34 +232,34 @@ func RenderPage(isSSG bool, clientEntry string, props PageProps, pagePath string
 		return PageData{}, err
 	}
 
-	val, err := ctx.RunScript("renderApp()", "render.js")
+	renderScript := fmt.Sprintf(`globalThis.renderApp(globalThis.PageComponent, %s);`, jsonProps)
+	utils.Logger.Info(renderScript)
+	val, err := ctx.RunScript(renderScript, "render.js")
+
 	if err != nil {
 		utils.Logger.Sugar().Fatalf("Failed to render React component: %v", err)
+		return PageData{}, err
 	}
 	renderedHTML = val.String()
 
+	clientBundle := ""
+
 	if !isSSG {
-		clientBundle, err = buildClient(clientEntry)
+		clientBundle, err = buildClient(clientEntry, pagePath, basePath)
 		if err != nil {
 			utils.Logger.Error("Error building client bundle", zap.Error(err))
 			return PageData{}, err
 		}
 	}
 
-	jsonProps, err := json.Marshal(propsWithPage)
-	if err != nil {
-		utils.Logger.Sugar().Fatalf("Failed to marshal props: %v", err)
-		return PageData{}, err
-	}
-
-	tmpl, err := template.New("webpage").Parse(htmlTemplate)
+	tmpl, err := template.New("ssrPage").Parse(ssrHtmlTemplate)
 	if err != nil {
 		utils.Logger.Sugar().Fatal("Error parsing template:", err)
 		return PageData{}, err
 	}
 
 	if !isSSG {
-		tmpl, err = template.New("webpage").Parse(clientHtmlTemplate)
+		tmpl, err = template.New("ssrPage").Parse(ssrClientHtmlTemplate)
 		if err != nil {
 			utils.Logger.Sugar().Fatal("Error parsing client template:", err)
 			return PageData{}, err
