@@ -1,12 +1,13 @@
 {
-  "basePath": "./frontend",
+  "basePath": "../../frontend",
   "outputPath": "./dist",
-  "staticPath": "frontend/public",
+  "staticPath": "../../frontend/public",
   "useSrc": true,
   "port": 8080,
   "tailwind": {
     "config": "tailwind.config.js",
     "cssPath": "src/styles/base.css",
     "output": "public/style.css"
-  }
+  },
+  "logPath": "storage/logs/ikou.log"
 }

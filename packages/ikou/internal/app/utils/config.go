@@ -38,8 +38,6 @@ const BaseJSONConfig = `{
 }`
 
 func ExtractConfigDetails(configPath string) {
-	defer Logger.Sync()
-
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {
 		if err := json.Unmarshal([]byte(BaseJSONConfig), &GlobalConfig); err != nil {
 			Logger.Sugar().Fatalf("failed to unmarshal base JSON config: %v", err)
@@ -60,6 +58,10 @@ func ExtractConfigDetails(configPath string) {
 	}
 
 	GlobalConfig = config
+
+	if GlobalConfig.LogPath != "" {
+		UpdateLogPath(GlobalConfig.LogPath)
+	}
 
 	Logger.Sugar().Debug("Config loaded: %+v\n", GlobalConfig)
 }

@@ -74,7 +74,6 @@ type PageProps struct {
 //   - A string containing the contents of the bundled JavaScript file.
 //   - An error if the build process fails or if no output files are generated.
 func buildBackend(serverEntry string, pagePath string, basePath string) (string, error) {
-	defer utils.Logger.Sync()
 	serverEntryContent, err := os.ReadFile(serverEntry)
 	if err != nil {
 		return "", fmt.Errorf("failed to read server entry: %w", err)
@@ -158,7 +157,6 @@ func buildClient(clientEntry string, pagePath string, basePath string) (string, 
 	}
 
 	tmpFile.Close()
-	defer utils.Logger.Sync()
 	clientResult := esbuild.Build(esbuild.BuildOptions{
 		EntryPoints: []string{tmpFile.Name()},
 		Bundle:      true,
@@ -188,7 +186,6 @@ func buildClient(clientEntry string, pagePath string, basePath string) (string, 
 // - PageData: A struct containing the rendered HTML content, initial props, JavaScript bundle, and the HTML template.
 // - error: An error if any occurred during the rendering process.
 func RenderPage(isSSG bool, props PageProps, pagePath string) (PageData, error) {
-	defer utils.Logger.Sync()
 
 	var renderedHTML string
 	var err error

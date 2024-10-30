@@ -21,7 +21,6 @@ type RouteInfo struct {
 var RouteMap = map[string]RouteInfo{}
 
 func scanDirectory(directory string, baseRoute string) error {
-	defer utils.Logger.Sync()
 	return filepath.Walk(directory, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -57,11 +56,12 @@ func generateRouteFromFilePath(filePath string, baseRoute string) string {
 		return "/"
 	}
 
+	route = strings.Replace(route, "index", "/", -1)
+
 	return "/" + route
 }
 
 func watchDirectory(directory string, baseRoute string) {
-	defer utils.Logger.Sync()
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		utils.Logger.Sugar().Fatal(err)
@@ -106,8 +106,6 @@ func watchDirectory(directory string, baseRoute string) {
 }
 
 func InitializeRouting(baseRoute string, dev bool) {
-	defer utils.Logger.Sync()
-
 	err := scanDirectory(fmt.Sprintf("%s/pages/", baseRoute), baseRoute)
 	if err != nil {
 		utils.Logger.Sugar().Fatalf("Error scanning pages directory: %v", err)

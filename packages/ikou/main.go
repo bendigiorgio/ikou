@@ -7,6 +7,7 @@ import (
 )
 
 func main() {
+	utils.InitLogger("dev")
 	defer utils.Logger.Sync()
 	utils.ExtractConfigDetails("ikou.config.json")
 

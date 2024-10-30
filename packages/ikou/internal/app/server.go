@@ -13,7 +13,6 @@ import (
 )
 
 func StartServer(devMode bool) {
-	defer utils.Logger.Sync()
 	intPort := utils.GlobalConfig.Port
 	port := strconv.Itoa(intPort)
 

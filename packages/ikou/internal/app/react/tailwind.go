@@ -9,7 +9,6 @@ import (
 )
 
 func BuildCSS() error {
-	defer utils.Logger.Sync()
 
 	cssPath := utils.GlobalConfig.Tailwind.CSSPath
 	outPath := utils.GlobalConfig.Tailwind.Output
@@ -35,7 +34,6 @@ func BuildCSS() error {
 }
 
 func WatchCSS() error {
-	defer utils.Logger.Sync()
 
 	cssPath := utils.GlobalConfig.Tailwind.CSSPath
 	outPath := utils.GlobalConfig.Tailwind.Output
