@@ -20,6 +20,7 @@ type IkouConfig struct {
 		CSSPath string `json:"cssPath"`
 		Output  string `json:"output"`
 	} `json:"tailwind"`
+	LogPath string `json:"logPath"`
 }
 
 const BaseJSONConfig = `{
@@ -32,7 +33,8 @@ const BaseJSONConfig = `{
     "config": "tailwind.config.js",
     "cssPath": "src/styles/base.css",
     "output": "public/style.css"
-  }
+  },
+  "logPath": "storage/logs/ikou.log"
 }`
 
 func ExtractConfigDetails(configPath string) {
