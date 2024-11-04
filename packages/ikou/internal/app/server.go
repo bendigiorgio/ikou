@@ -46,32 +46,43 @@ func StartServer(devMode bool) {
 		}
 
 		routeInfo, exists := router.RouteMap[route]
-		if !exists {
-			utils.Logger.Error("Page not found", zap.String("route", route))
-			http.Error(w, "Page not found", http.StatusNotFound)
+		apiRouteInfo, apiExists := router.ApiRouteMap[route]
+
+		if exists {
+			initialProps := react.PageProps{
+				PageRoute: route,
+			}
+			pageData, err := react.RenderPage(
+				routeInfo.IsSSG,
+				initialProps,
+				routeInfo.PagePath,
+			)
+			if err != nil {
+				utils.Logger.Error("Page not found", zap.Error(err))
+				http.Error(w, "Page not found", http.StatusNotFound)
+				return
+			}
+			err = pageData.Tmpl.Execute(w, pageData)
+			if err != nil {
+				utils.Logger.Error("Error executing template", zap.Error(err))
+			}
 			return
 		}
 
-		initialProps := react.PageProps{
-			PageRoute: route,
-		}
+		if apiExists {
+			// check if the request method is allowed
+			if r.Method != apiRouteInfo.Method {
+				http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+				return
+			}
 
-		pageData, err := react.RenderPage(
-			routeInfo.IsSSG,
-			initialProps,
-			routeInfo.PagePath,
-		)
-
-		if err != nil {
-			utils.Logger.Error("Page not found", zap.Error(err))
-			http.Error(w, "Page not found", http.StatusNotFound)
+			// if it exists call the api handler function
+			apiRouteInfo.HandlerFn(w, r, apiRouteInfo.FilePath)
 			return
 		}
 
-		err = pageData.Tmpl.Execute(w, pageData)
-		if err != nil {
-			utils.Logger.Error("Error executing template", zap.Error(err))
-		}
+		utils.Logger.Error("Page not found", zap.String("route", route))
+		http.Error(w, "Page not found", http.StatusNotFound)
 	})
 	portString := ":" + port
 	utils.Logger.Sugar().Fatal(http.ListenAndServe(portString, r))

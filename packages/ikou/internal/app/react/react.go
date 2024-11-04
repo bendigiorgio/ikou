@@ -62,6 +62,7 @@ type PageData struct {
 
 type PageProps struct {
 	PageRoute string
+	Data      map[string]interface{}
 }
 
 // buildBackend compiles the specified TypeScript or TSX file into a single JavaScript bundle using esbuild.
