@@ -14,8 +14,38 @@ use this in a production environment.
 
 ## Getting started
 
+### Installation
+
+### React File Structure
+
+#### Pages
+
+### Backend File Structure
+
+The two forms of backend routes are API routes and Entry routes.
+These are both defined in the `routes` directory and into their respective `api` and `entry` subdirectories.
+Like the React pages, the routes are also defined by the file structure.
+
+#### API Routes
+
+API routes allow you to create RESTful endpoints in your application.
+This defaults to the `/api` path but can be changed in the configuration.
+
+#### Entry Routes
+
+Entry routes allow you to run Go code on the server before rendering the page.
+The entry route handler function also let's you return data to be passed as props to the page.
+
+### Middleware
+
+### Configuration
+
 ## Roadmap
 
 ## Contributing
 
 ## License
+
+MIT
+
+See the [LICENSE](LICENSE) file for more information.

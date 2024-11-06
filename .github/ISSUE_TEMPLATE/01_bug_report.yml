@@ -1,0 +1,44 @@
+name: Bug Report
+description: Something not working as expected
+body:
+  - type: textarea
+    attributes:
+      label: Current behavior
+      description: Describe how the issue manifests.
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Expected behavior
+      description: Describe what the desired behavior would be.
+    validations:
+      required: true
+
+  - type: input
+    attributes:
+      label: "`ikou` version"
+      description: The version of ikou you are using.
+    validations:
+      required: true
+
+  - type: input
+    attributes:
+      label: CI environment
+      description: CI service name if applicable.
+    validations:
+      required: false
+
+  - type: textarea
+    attributes:
+      label: "Reproduction steps"
+      description: Please provide the steps to reproduce the issue or a link to a reproduction of the issue.
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Error logs
+      description: Link to your error logs if you can.
+    validations:
+      required: false
