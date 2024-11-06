@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 var Logger *zap.Logger
@@ -27,6 +28,7 @@ func InitLogger(mode string) {
 	if mode == "prod" {
 		config = zap.NewProductionConfig()
 	}
+	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 	config.OutputPaths = []string{"stdout", logPath}
 	config.ErrorOutputPaths = []string{"stderr", logPath}
 

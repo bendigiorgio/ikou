@@ -10,16 +10,18 @@ import (
 var GlobalConfig IkouConfig
 
 type IkouConfig struct {
-	BasePath   string `json:"basePath"`
-	OutPath    string `json:"outputPath"`
-	StaticPath string `json:"staticPath"`
-	UseSrc     bool   `json:"useSrc"`
-	Port       int    `json:"port"`
-	Tailwind   struct {
+	BasePath    string `json:"basePath"`
+	OutPath     string `json:"outputPath"`
+	StaticPath  string `json:"staticPath"`
+	UseSrc      bool   `json:"useSrc"`
+	Port        int    `json:"port"`
+	UseTailwind bool   `json:"useTailwind"`
+	Tailwind    struct {
 		Config  string `json:"config"`
 		CSSPath string `json:"cssPath"`
 		Output  string `json:"output"`
 	} `json:"tailwind"`
+	ApiPath string `json:"apiPath"`
 	LogPath string `json:"logPath"`
 }
 
@@ -29,11 +31,13 @@ const BaseJSONConfig = `{
   "staticPath": "frontend/public",
   "useSrc": true,
   "port": 3000,
+  "useTailwind": true,
   "tailwind": {
     "config": "tailwind.config.js",
     "cssPath": "src/styles/base.css",
     "output": "public/style.css"
   },
+  "apiPath": "/api",
   "logPath": "storage/logs/ikou.log"
 }`
 

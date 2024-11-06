@@ -29,7 +29,6 @@ const ssrHtmlTemplate = `
 </head>
 <body>
     <div id="app">{{.RenderedContent}}</div>
-    <script id="IKOU_PROPS">window.APP_PROPS = {{.InitialProps}};</script>
 	<script type="module">{{.JS}}</script>
 </body>
 </html>

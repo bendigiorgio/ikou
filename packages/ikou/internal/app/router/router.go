@@ -75,13 +75,14 @@ func scanApiDirectory() error {
 }
 
 func generateApiRoute(filePath string) {
-	// Derive the HTTP method and route path from the file structure
+	apiPath := utils.GlobalConfig.ApiPath
+
 	fileName := filepath.Base(filePath)
 	method := strings.ToUpper(strings.TrimSuffix(fileName, filepath.Ext(fileName))) // e.g., "get" becomes "GET"
 
 	// Generate route by removing BASE_API_ROUTE and the method part of the path
 	routeDir := filepath.Dir(strings.TrimPrefix(filePath, BASE_API_ROUTE+"/"))
-	route := "/api/" + filepath.ToSlash(routeDir)
+	route := apiPath + "/" + filepath.ToSlash(routeDir)
 
 	// Load the plugin and look up the Handler function
 	p, err := plugin.Open(filePath)
@@ -100,7 +101,6 @@ func generateApiRoute(filePath string) {
 		return
 	}
 
-	// Register the handler in ApiRouteMap
 	ApiRouteMap[route] = ApiRouteInfo{
 		FilePath:  filePath,
 		Method:    method,
@@ -128,7 +128,6 @@ func scanEntryDirectory() error {
 }
 
 func generateEntryRoute(filePath string) {
-	// Extract route from file path
 	route := strings.TrimSuffix(strings.TrimPrefix(filePath, BASE_ENTRY_ROUTE+"/"), ".so")
 
 	// Load the plugin and look up the Entry function
@@ -148,7 +147,6 @@ func generateEntryRoute(filePath string) {
 		return
 	}
 
-	// Link the entry route to the existing RouteMap route if it exists
 	if pageRoute, exists := RouteMap[route]; exists {
 		EntryRouteMap[route] = EntryRouteInfo{
 			FilePath:  filePath,
@@ -303,7 +301,6 @@ func watchDirectory(directory string, baseRoute string) {
 					err = react.BuildCSS()
 					if err != nil {
 						utils.Logger.Sugar().Fatalf("Error building CSS: %v", err)
-
 					}
 				}
 			case err, ok := <-watcher.Errors:

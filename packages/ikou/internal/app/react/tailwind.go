@@ -9,6 +9,11 @@ import (
 )
 
 func BuildCSS() error {
+	useTailwind := utils.GlobalConfig.UseTailwind
+
+	if !useTailwind {
+		return nil
+	}
 
 	cssPath := utils.GlobalConfig.Tailwind.CSSPath
 	outPath := utils.GlobalConfig.Tailwind.Output

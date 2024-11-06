@@ -52,6 +52,12 @@ func StartServer(devMode bool) {
 			initialProps := react.PageProps{
 				PageRoute: route,
 			}
+
+			entryInfo, entryExists := router.EntryRouteMap[route]
+			if entryExists {
+				initialProps.Data = entryInfo.HandlerFn(w, r, entryInfo.FilePath)
+			}
+
 			pageData, err := react.RenderPage(
 				routeInfo.IsSSG,
 				initialProps,
