@@ -1,0 +1,55 @@
+# Add 'Documentation' label to any changes within 'docs' folder or any subfolders
+Documentation:
+  - changed-files:
+      - any-glob-to-any-file: docs/**
+
+CLI:
+  - changed-files:
+      - any-glob-to-any-file: packages/cli/*
+
+CORE:
+  - changed-files:
+      - any-glob-to-any-file: packages/ikou/*
+
+# Add 'feature' label to any PR where the head branch name starts with `feature` or has a `feature` section in the name
+feature:
+  - head-branch: ["^feature", "feature"]
+
+# Add 'release' label to any PR that is opened against the `main` branch
+release:
+  - base-branch: "main"
+
+bugfix:
+  - head-branch: ["^fix", "bug"]
+  - changed-files:
+      - any-glob-to-any-file: "**/tests/**"
+
+tests:
+  - changed-files:
+      - any-glob-to-any-file: "**/tests/**"
+  - changed-files:
+      - any-glob-to-any-file: "**/*.spec.*"
+      - any-glob-to-any-file: "**/*.test.*"
+
+chore:
+  - head-branch: ["^chore"]
+  - changed-files:
+      - any-glob-to-any-file: ".github/**"
+      - any-glob-to-any-file: "package.json"
+
+dependencies:
+  - changed-files:
+      - any-glob-to-any-file: "**/package-lock.json"
+      - any-glob-to-any-file: "**/yarn.lock"
+      - any-glob-to-any-file: "pnpm-lock.yaml"
+      - any-glob-to-any-file: "go.mod"
+      - any-glob-to-any-file: "go.sum"
+
+performance:
+  - head-branch: ["^perf", "perf"]
+
+refactor:
+  - head-branch: ["^refactor", "refactor"]
+
+security:
+  - head-branch: ["^security", "security"]
