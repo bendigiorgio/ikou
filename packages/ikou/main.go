@@ -1,25 +1,34 @@
 package main
 
 import (
-	"github.com/bendigiorgio/ikou/internal/app"
-	"github.com/bendigiorgio/ikou/internal/app/react"
-	"github.com/bendigiorgio/ikou/internal/app/utils"
+	"os"
+	"time"
+
+	"github.com/bendigiorgio/ikou/internal/cmd"
+	"github.com/urfave/cli/v2"
 )
 
 func main() {
-	utils.InitLogger("dev")
-	defer utils.Logger.Sync()
-	utils.ExtractConfigDetails("ikou.config.json")
-
-	devMode := true
-
-	if devMode {
-		go utils.WatchForConfigChanges("ikou.config.json")
+	app := &cli.App{
+		Name:     "ikou",
+		Version:  "0.0.1",
+		Compiled: time.Now(),
+		Authors: []*cli.Author{
+			{
+				Name:  "Ben Di Giorgio",
+				Email: "bendigiorgio@gmail.com",
+			},
+		},
+		HelpName: "ikou",
+		Usage:    "A React Meta Framework",
+		Commands: []*cli.Command{
+			cmd.GetRunCommand(),
+			cmd.GetDevCommand(),
+			cmd.GetBuildCommand(),
+		},
 	}
 
-	if err := react.BuildCSS(); err != nil {
-		utils.Logger.Sugar().Fatalf("Failed to build CSS: %v", err)
+	if err := app.Run(os.Args); err != nil {
+		panic(err)
 	}
-
-	app.StartServer(devMode)
 }
