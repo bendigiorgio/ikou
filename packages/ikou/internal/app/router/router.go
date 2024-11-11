@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"plugin"
 	"strings"
@@ -44,20 +43,6 @@ var EntryRouteMap = map[string]EntryRouteInfo{}
 const BASE_API_ROUTE = "routes/api"
 const BASE_ENTRY_ROUTE = "routes/entry"
 
-// Automatically compiles a .go file to a .so file
-func compileToPlugin(filePath string) (string, error) {
-	outputPath := strings.TrimSuffix(filePath, ".go") + ".so"
-	cmd := exec.Command("go", "build", "-buildmode=plugin", "-o", outputPath, filePath)
-	err := cmd.Run()
-	if err != nil {
-		utils.Logger.Sugar().Errorf("Failed to compile %s to plugin: %v", filePath, err)
-		return "", err
-	}
-	utils.Logger.Sugar().Infof("Compiled %s to %s", filePath, outputPath)
-	return outputPath, nil
-}
-
-// Scan and generate routes for API handlers
 func scanApiDirectory() error {
 	return filepath.Walk(BASE_API_ROUTE, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -335,10 +320,16 @@ func InitializeRouting(baseRoute string, dev bool) {
 		utils.Logger.Sugar().Fatalf("Error scanning Entry directory: %v", err)
 	}
 
+	err = loadMiddleware()
+	if err != nil {
+		utils.Logger.Sugar().Fatalf("Error loading middleware: %v", err)
+	}
+
 	if dev {
 		go watchDirectory(fmt.Sprintf("%s/pages/", baseRoute), baseRoute)
 		go watchApiDirectory()
 		go watchEntryDirectory()
+		go watchMiddlewareDirectory()
 	}
 
 	utils.Logger.Sugar().Debugf("Initial routes:", RouteMap)
